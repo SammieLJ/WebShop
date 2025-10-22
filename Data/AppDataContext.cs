@@ -9,10 +9,10 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Article> Articles { get; set; }
-    public DbSet<SubscriptionPackage> SubscriptionPackages { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderItem> OrderItems { get; set; }
+    public required DbSet<Article> Articles { get; set; }
+    public required DbSet<SubscriptionPackage> SubscriptionPackages { get; set; }
+    public required DbSet<Order> Orders { get; set; }
+    public required DbSet<OrderItem> OrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +36,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(1000);
             entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
+            entity.Property(e => e.IncludesPhysicalMagazine).HasDefaultValue(false);
             entity.Property(e => e.DateCreated).HasDefaultValueSql("CURRENT_TIMESTAMP");
         });
 
@@ -50,7 +51,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
             entity.Property(e => e.TotalPrice).HasColumnType("decimal(10,2)");
             entity.Property(e => e.DateCreated).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            
+
             entity.HasOne(e => e.SubscriptionPackage)
                 .WithMany(s => s.Orders)
                 .HasForeignKey(e => e.SubscriptionPackageId)
@@ -62,17 +63,17 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Price).HasColumnType("decimal(10,2)");
-            
+
             entity.HasOne(e => e.Order)
                 .WithMany(o => o.OrderItems)
                 .HasForeignKey(e => e.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             entity.HasOne(e => e.Article)
                 .WithMany(a => a.OrderItems)
                 .HasForeignKey(e => e.ArticleId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasIndex(e => new { e.OrderId, e.ArticleId });
         });
     }

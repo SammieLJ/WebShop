@@ -52,6 +52,7 @@ public class SubscriptionPackagesController : ControllerBase
         existing.Name = package.Name;
         existing.Description = package.Description;
         existing.Price = package.Price;
+        existing.IncludesPhysicalMagazine = package.IncludesPhysicalMagazine;
 
         await _context.SaveChangesAsync();
         return NoContent();

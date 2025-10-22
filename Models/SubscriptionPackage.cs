@@ -15,6 +15,8 @@ public class SubscriptionPackage
 
     public decimal Price { get; set; }
 
+    public bool IncludesPhysicalMagazine { get; set; } = false;
+
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
     // Navigation

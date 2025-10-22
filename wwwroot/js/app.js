@@ -226,9 +226,12 @@ createApp({
         // Subscriptions
         async loadSubscriptions() {
             try {
-                this.subscriptions = await this.apiCall(`${API_BASE}/subscriptionpackages`);
+                const data = await this.apiCall(`${API_BASE}/subscriptionpackages`);
+                this.subscriptions = Array.isArray(data) ? data : [];
             } catch (error) {
                 console.error('Failed to load subscriptions:', error);
+                this.subscriptions = []; // Ensure subscriptions is always an array
+                this.showAlert('Failed to load subscription packages. Please try refreshing the page.', 'danger');
             }
         },
 
@@ -249,14 +252,49 @@ createApp({
 
         async saveSubscription() {
             try {
+                // Validate form data
+                if (!this.subscriptionForm.name?.trim()) {
+                    this.showAlert('Name is required', 'danger');
+                    return;
+                }
+                if (!this.subscriptionForm.price || this.subscriptionForm.price <= 0 || this.subscriptionForm.price > 1000000) {
+                    this.showAlert('Price must be between 0.01 and 1,000,000', 'danger');
+                    return;
+                }
+
+                const subscriptionData = {
+                    ...this.subscriptionForm,
+                    name: this.subscriptionForm.name.trim(),
+                    description: this.subscriptionForm.description?.trim() || null
+                };
+
                 const method = this.subscriptionForm.id ? 'PUT' : 'POST';
                 const url = this.subscriptionForm.id 
                     ? `${API_BASE}/subscriptionpackages/${this.subscriptionForm.id}`
                     : `${API_BASE}/subscriptionpackages`;
 
+                // Build explicit payload
+                let payload;
+                if (method === 'POST') {
+                    payload = {
+                        name: subscriptionData.name,
+                        description: subscriptionData.description,
+                        price: Number(subscriptionData.price),
+                        includesPhysicalMagazine: Boolean(subscriptionData.includesPhysicalMagazine)
+                    };
+                } else {
+                    payload = {
+                        id: Number(subscriptionData.id),
+                        name: subscriptionData.name,
+                        description: subscriptionData.description,
+                        price: Number(subscriptionData.price),
+                        includesPhysicalMagazine: Boolean(subscriptionData.includesPhysicalMagazine)
+                    };
+                }
+
                 await this.apiCall(url, {
                     method,
-                    body: JSON.stringify(this.subscriptionForm)
+                    body: JSON.stringify(payload)
                 });
 
                 this.showAlert(`Subscription ${this.subscriptionForm.id ? 'updated' : 'created'} successfully`, 'success');
@@ -264,6 +302,7 @@ createApp({
                 await this.loadSubscriptions();
             } catch (error) {
                 console.error('Failed to save subscription:', error);
+                this.showAlert(error.message || 'Failed to save subscription', 'danger');
             }
         },
 
@@ -276,15 +315,19 @@ createApp({
                 await this.loadSubscriptions();
             } catch (error) {
                 console.error('Failed to delete subscription:', error);
+                this.showAlert(error.message || 'Failed to delete subscription package', 'danger');
             }
         },
 
         // Orders
         async loadOrders() {
             try {
-                this.orders = await this.apiCall(`${API_BASE}/orders`);
+                const data = await this.apiCall(`${API_BASE}/orders`);
+                this.orders = Array.isArray(data) ? data : [];
             } catch (error) {
                 console.error('Failed to load orders:', error);
+                this.orders = []; // Ensure orders is always an array
+                this.showAlert('Failed to load orders. Please try refreshing the page.', 'danger');
             }
         },
 
@@ -319,6 +362,7 @@ createApp({
                 await this.loadOrders();
             } catch (error) {
                 console.error('Failed to delete order:', error);
+                this.showAlert(error.message || 'Failed to delete order', 'danger');
             }
         },
 
@@ -338,6 +382,7 @@ createApp({
                 await this.loadOrders();
             } catch (error) {
                 console.error('Failed to update order status:', error);
+                this.showAlert(error.message || 'Failed to update order status', 'danger');
             }
         },
 

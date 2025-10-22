@@ -49,7 +49,8 @@ public class OrdersController : ControllerBase
                     {
                         o.SubscriptionPackage.Id,
                         o.SubscriptionPackage.Name,
-                        o.SubscriptionPackage.Price
+                        o.SubscriptionPackage.Price,
+                        o.SubscriptionPackage.IncludesPhysicalMagazine
                     } : null
                 })
                 .ToListAsync();
@@ -92,7 +93,8 @@ public class OrdersController : ControllerBase
                     {
                         o.SubscriptionPackage.Id,
                         o.SubscriptionPackage.Name,
-                        o.SubscriptionPackage.Price
+                        o.SubscriptionPackage.Price,
+                        o.SubscriptionPackage.IncludesPhysicalMagazine
                     } : null
                 })
                 .FirstOrDefaultAsync();
@@ -239,12 +241,36 @@ public class OrdersController : ControllerBase
                 Console.WriteLine($"SMS sending failed: {smsEx.Message}");
             }
 
-            // Return created order with details
+            // Return created order with details (projected to avoid circular references)
             var createdOrder = await _context.Orders
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Article)
                 .Include(o => o.SubscriptionPackage)
-                .FirstOrDefaultAsync(o => o.Id == order.Id);
+                .Where(o => o.Id == order.Id)
+                .Select(o => new
+                {
+                    o.Id,
+                    o.OrderNumber,
+                    o.CustomerPhoneNumber,
+                    o.Status,
+                    o.TotalPrice,
+                    o.DateCreated,
+                    Articles = o.OrderItems.Select(oi => new
+                    {
+                        oi.ArticleId,
+                        oi.Article.Name,
+                        oi.Quantity,
+                        oi.Price
+                    }),
+                    SubscriptionPackage = o.SubscriptionPackage != null ? new
+                    {
+                        o.SubscriptionPackage.Id,
+                        o.SubscriptionPackage.Name,
+                        o.SubscriptionPackage.Price,
+                        o.SubscriptionPackage.IncludesPhysicalMagazine
+                    } : null
+                })
+                .FirstOrDefaultAsync();
 
             return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, createdOrder);
         }

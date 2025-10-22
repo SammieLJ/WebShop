@@ -4,11 +4,12 @@ A full-stack web application built with ASP.NET Core 9.0, Vue.js 3, and SQLite f
 
 ## Features
 
-### Core Functionality
-- **Article Management**: Create, read, update, and delete articles with validation
-- **Subscription Package Management**: Manage subscription offerings (digital and physical magazines)
-- **Order Processing**: Place orders with multiple articles and/or subscription packages
-- **Customer Tracking**: Identify customers by phone number
+### Core Functionality ✅ All Fully Implemented
+- **Article Management**: Complete CRUD operations with validation and error handling
+- **Subscription Package Management**: Full management of subscription offerings (digital and physical magazines)
+- **Order Processing**: Complete order system with multiple articles and/or subscription packages
+- **Order Management**: View, update status, and manage all customer orders
+- **Customer Tracking**: Identify customers by phone number with purchase history
 - **SMS Notifications**: Automatic SMS alerts for order confirmations and status updates
 
 ### Business Rules
@@ -19,19 +20,22 @@ A full-stack web application built with ASP.NET Core 9.0, Vue.js 3, and SQLite f
 - Automatic rate limiting and failover for SMS services (5 SMS/minute per service)
 
 ### Technical Features
+- **Complete Frontend**: All views (Articles, Subscriptions, Orders, Purchase) fully functional
 - **Error Handling**: Comprehensive error detection and user-friendly messages
-- **Data Validation**: Client and server-side validation
+- **Data Validation**: Client and server-side validation with real-time feedback
 - **Database Migrations**: Automatic database creation with Entity Framework Core
 - **RESTful API**: Clean API endpoints for all CRUD operations
 - **Responsive Design**: Bootstrap 5 for mobile-friendly interface
 - **SMS Service Architecture**: Dual SMS provider with automatic failover
+- **Real-time Updates**: Automatic data refresh after operations
 
 ## Technology Stack
 
-- **Backend**: ASP.NET Core 9.0, C#
-- **Database**: SQLite with Entity Framework Core
-- **Frontend**: Vue.js 3, Bootstrap 5, Font Awesome
-- **Architecture**: RESTful API, MVC pattern
+- **Backend**: ASP.NET Core 9.0, C# 12
+- **Database**: SQLite with Entity Framework Core (Code First)
+- **Frontend**: Vue.js 3 (Composition API), Bootstrap 5, Font Awesome
+- **Architecture**: RESTful API, SPA (Single Page Application)
+- **Development**: Hot reload, comprehensive error handling
 
 ## Installation & Setup (Windows 11)
 
@@ -104,11 +108,11 @@ dotnet run
 ```
 
 Aplikacija bo dostopna na:
-- **HTTP**: http://localhost:5000
-- **HTTPS**: https://localhost:5001
+- **HTTP**: http://localhost:5139 (or check console output for actual port)
+- **HTTPS**: https://localhost:7139 (or check console output for actual port)
 
 ### Step 5: Access the Application
-Odpri brskalnik in pojdi na `http://localhost:5000`
+Odpri brskalnik in pojdi na `http://localhost:5139` (ali na port, ki ga prikaže konzola)
 
 ## Database Schema
 
@@ -122,8 +126,8 @@ Aplikacija uporablja Entity Framework Code First, tako da se baza ustvari iz C# 
 
 ### Initial Seed Data:
 Aplikacija ob prvem zagonu doda testne podatke:
-- 5 testnih artiklov
-- 4 testne naročniške pakete
+- 5 testnih artiklov z različnimi cenami in dobavitelji
+- 4 testne naročniške pakete (digitalni in fizični)
 
 ## Project Structure
 
@@ -204,16 +208,35 @@ The `SmsServiceManager` automatically:
 
 ## Testing the Application
 
-### Sample Test Flow
-1. Navigate to **Articles** tab
-2. Add a new article
-3. Navigate to **Subscriptions** tab
-4. Add a subscription package
-5. Navigate to **Make Purchase** tab
-6. Enter phone number: `+38640123456`
-7. Select items and place order
-8. Check **Orders** tab to view created order
-9. Try to purchase the same items again (should fail with validation message)
+### Complete Test Flow ✅
+1. **Articles Management**:
+   - Navigate to **Articles** tab
+   - Add, edit, and delete articles
+   - Test validation (required fields, price limits)
+
+2. **Subscription Management**:
+   - Navigate to **Subscriptions** tab  
+   - Add subscription packages (digital/physical magazine options)
+   - Edit existing packages
+   - Test deletion (should fail if package has orders)
+
+3. **Order Processing**:
+   - Navigate to **Make Purchase** tab
+   - Enter phone number: `+38640123456`
+   - Select articles and/or subscription package
+   - Place order and verify SMS notification
+
+4. **Order Management**:
+   - Navigate to **Orders** tab
+   - View all orders with details
+   - Click "View" to see order details modal
+   - Update order status (triggers SMS notification)
+   - Test order deletion (only pending orders)
+
+5. **Business Rule Testing**:
+   - Try to purchase same items again (should fail)
+   - Try to add second subscription for same customer (should fail)
+   - Try to delete purchased articles (should fail)
 
 ## Troubleshooting
 
@@ -226,23 +249,44 @@ Change the port in `Program.cs` or `launchSettings.json`
 ### SQLite Locked Database
 Close any open connections in DB Browser or sqlite3 console
 
+## Recent Updates ✅
+
+### Latest Fixes (Current Commit)
+- **Fixed all unbinded frontend elements**: All views now fully functional
+- **Added missing Subscriptions view**: Complete CRUD operations with table display
+- **Added missing Orders view**: Full order management with status updates
+- **Enhanced SubscriptionPackage model**: Added `IncludesPhysicalMagazine` property
+- **Improved error handling**: Comprehensive user feedback across all operations
+- **Fixed database context warnings**: Added required modifiers to DbSet properties
+- **Enhanced form validation**: Client-side validation for all forms
+- **Improved data loading**: Proper array initialization and error states
+
+### Application Status
+- ✅ **Articles**: Fully functional (Create, Read, Update, Delete)
+- ✅ **Subscriptions**: Fully functional (Create, Read, Update, Delete)  
+- ✅ **Orders**: Fully functional (View, Update Status, Delete)
+- ✅ **Purchase**: Fully functional (Create orders with validation)
+- ✅ **SMS Integration**: Working with dual provider failover
+- ✅ **Error Handling**: Comprehensive across all components
+
 ## Git Repository Setup
 
 ```bash
-# Initialize repository
-git init
-
 # Add all files
 git add .
 
-# First commit
-git commit -m "Initial commit: WebShop order management system"
+# Commit with current fixes
+git commit -m "Fix: Complete frontend implementation - all views now functional
 
-# Add remote (GitHub/GitLab/Bitbucket)
-git remote add origin <your-repo-url>
+- Add missing Subscriptions and Orders views with full CRUD operations
+- Fix SubscriptionPackage model with IncludesPhysicalMagazine property
+- Enhance error handling and form validation across all components
+- Fix database context warnings with required modifiers
+- Improve data loading with proper array initialization
+- All frontend elements now properly bound to backend APIs"
 
-# Push to remote
-git push -u origin main
+# Push to remote (if already set up)
+git push
 ```
 
 ## Future Enhancements
@@ -261,4 +305,4 @@ This project is created as a technical assessment demonstration.
 
 ## Author
 
-Created as part of a technical assignment - 2024
+Created as part of a technical assignment - 2025

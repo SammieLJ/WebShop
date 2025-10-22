@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace WebShop.Models;
 
 public class OrderItem
