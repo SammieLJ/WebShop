@@ -305,8 +305,4 @@ This project is created as a technical assessment demonstration.
 
 ## Author
 
-<<<<<<< HEAD
 Created as part of a technical assignment - 2025
-=======
-Created as part of a technical assignment - 2025
->>>>>>> 979ecf5061f7874f71ce96a3f7d3a9786801bbfd
