@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebShop.Data;
 using WebShop.Models;
+using WebShop.Services;
 
 namespace WebShop.Controllers;
 
@@ -10,10 +11,12 @@ namespace WebShop.Controllers;
 public class ArticlesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ISessionService _sessionService;
 
-    public ArticlesController(AppDbContext context)
+    public ArticlesController(AppDbContext context, ISessionService sessionService)
     {
         _context = context;
+        _sessionService = sessionService;
     }
 
     // GET: api/articles
@@ -55,6 +58,11 @@ public class ArticlesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Article>> CreateArticle(Article article)
     {
+        if (!_sessionService.IsEditor())
+        {
+            return Forbid("Editor or Admin access required");
+        }
+
         try
         {
             if (!ModelState.IsValid)
@@ -78,6 +86,11 @@ public class ArticlesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateArticle(int id, Article article)
     {
+        if (!_sessionService.IsEditor())
+        {
+            return Forbid("Editor or Admin access required");
+        }
+
         if (id != article.Id)
         {
             return BadRequest(new { error = "ID mismatch" });
@@ -123,6 +136,11 @@ public class ArticlesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteArticle(int id)
     {
+        if (!_sessionService.IsEditor())
+        {
+            return Forbid("Editor or Admin access required");
+        }
+
         try
         {
             var article = await _context.Articles

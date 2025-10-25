@@ -12,17 +12,24 @@ public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ISmsServiceManager _smsService;
+    private readonly ISessionService _sessionService;
 
-    public OrdersController(AppDbContext context, ISmsServiceManager smsService)
+    public OrdersController(AppDbContext context, ISmsServiceManager smsService, ISessionService sessionService)
     {
         _context = context;
         _smsService = smsService;
+        _sessionService = sessionService;
     }
 
     // GET: api/orders
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetOrders()
     {
+        if (!_sessionService.IsAuthenticated())
+        {
+            return Unauthorized("Authentication required");
+        }
+
         try
         {
             var orders = await _context.Orders
@@ -284,6 +291,11 @@ public class OrdersController : ControllerBase
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] UpdateOrderStatusRequest request)
     {
+        if (!_sessionService.IsAdmin())
+        {
+            return Forbid("Admin access required to update order status");
+        }
+
         try
         {
             var order = await _context.Orders.FindAsync(id);
@@ -329,6 +341,11 @@ public class OrdersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrder(int id)
     {
+        if (!_sessionService.IsAdmin())
+        {
+            return Forbid("Admin access required to delete orders");
+        }
+
         try
         {
             var order = await _context.Orders

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <div id="result"></div>
+    <button onclick="testAuth()">Test Auth API</button>
+    <button onclick="testLogin()">Test Login</button>
+
+    <script>
+        async function testAuth() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing authentication...';
+            
+            try {
+                const response = await fetch('/api/auth/current');
+                const text = await response.text();
+                
+                resultDiv.innerHTML = `
+                    <h3>Auth Test Result:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Response: ${text}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testLogin() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing login...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const text = await response.text();
+                
+                resultDiv.innerHTML = `
+                    <h3>Login Test Result:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Response: ${text}</p>
+                `;
+                
+                if (response.ok) {
+                    // Now test auth again
+                    setTimeout(testAuth, 1000);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

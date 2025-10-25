@@ -1,146 +1,66 @@
-:root {
-    --primary-color: #0d6efd;
-    --secondary-color: #6c757d;
-    --success-color: #198754;
-    --danger-color: #dc3545;
-    --warning-color: #ffc107;
-}
+/* Custom styles for WebShop */
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .navbar-brand {
-    font-weight: bold;
-    font-size: 1.5rem;
+    font-weight: 600;
 }
 
-.nav-link {
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-    transform: translateY(-2px);
-}
-
-.table {
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.card.border-primary {
-    border-width: 2px !important;
+.table th {
+    border-top: none;
+    font-weight: 600;
 }
 
 .btn {
-    transition: all 0.2s ease;
+    border-radius: 6px;
+    font-weight: 500;
 }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.btn:active {
-    transform: translateY(0);
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .modal-content {
-    border-radius: 8px;
-}
-
-.modal-header {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.modal-header .btn-close {
-    filter: invert(1);
+    border-radius: 10px;
 }
 
 .alert {
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .badge {
-    padding: 0.5em 0.8em;
+    font-size: 0.75em;
 }
 
-.table-hover tbody tr:hover {
-    background-color: #f1f3f5;
+/* Loading and error screens */
+#loading-screen, #auth-error-screen {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Form styling */
-.form-control:focus,
-.form-select:focus,
-.form-check-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+#auth-error-screen .btn {
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
 }
 
-/* Responsive adjustments */
+#auth-error-screen .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive improvements */
 @media (max-width: 768px) {
     .table-responsive {
-        font-size: 0.9rem;
+        font-size: 0.875rem;
     }
-
-    .btn-group {
-        flex-direction: column;
-    }
-
+    
     .btn-group .btn {
-        margin-bottom: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
     }
-}
-
-/* Loading animation */
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.spinner {
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid var(--primary-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
-}
-
-/* Smooth transitions */
-* {
-    transition: background-color 0.2s ease;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
 }

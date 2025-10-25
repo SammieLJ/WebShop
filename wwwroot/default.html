@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebShop - Loading...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .loading-container {
+            text-align: center;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <h2>WebShop</h2>
+        <p>Checking authentication...</p>
+    </div>
+
+    <script>
+        // Check authentication and redirect appropriately
+        async function checkAuthAndRedirect() {
+            try {
+                console.log('Checking authentication...');
+                const response = await fetch('/api/auth/current');
+                console.log('Auth response status:', response.status);
+                
+                if (response.ok) {
+                    console.log('User is authenticated, redirecting to main app');
+                    // User is authenticated, redirect to main app
+                    window.location.href = '/index.html';
+                } else {
+                    console.log('User is not authenticated, redirecting to login');
+                    // User is not authenticated, redirect to login
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                // On error, redirect to login
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Start the auth check after a small delay to ensure page is loaded
+        setTimeout(checkAuthAndRedirect, 100);
+    </script>
+</body>
+</html>

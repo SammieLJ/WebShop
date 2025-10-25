@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebShop.Data;
 using WebShop.Models;
+using WebShop.Services;
 
 namespace WebShop.Controllers;
 
@@ -10,10 +11,12 @@ namespace WebShop.Controllers;
 public class SubscriptionPackagesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly ISessionService _sessionService;
 
-    public SubscriptionPackagesController(AppDbContext context)
+    public SubscriptionPackagesController(AppDbContext context, ISessionService sessionService)
     {
         _context = context;
+        _sessionService = sessionService;
     }
 
     [HttpGet]
@@ -33,6 +36,11 @@ public class SubscriptionPackagesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<SubscriptionPackage>> Create(SubscriptionPackage package)
     {
+        if (!_sessionService.IsEditor())
+        {
+            return Forbid("Editor or Admin access required");
+        }
+
         if (!ModelState.IsValid) return BadRequest(ModelState);
         package.DateCreated = DateTime.UtcNow;
         _context.SubscriptionPackages.Add(package);
@@ -43,6 +51,11 @@ public class SubscriptionPackagesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, SubscriptionPackage package)
     {
+        if (!_sessionService.IsEditor())
+        {
+            return Forbid("Editor or Admin access required");
+        }
+
         if (id != package.Id) return BadRequest(new { error = "ID mismatch" });
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -61,6 +74,11 @@ public class SubscriptionPackagesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
+        if (!_sessionService.IsEditor())
+        {
+            return Forbid("Editor or Admin access required");
+        }
+
         var existing = await _context.SubscriptionPackages
             .Include(p => p.Orders)
             .FirstOrDefaultAsync(p => p.Id == id);

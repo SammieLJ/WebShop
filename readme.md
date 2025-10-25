@@ -1,303 +1,320 @@
-# WebShop - Order Management System
+# WebShop - Order Management System with User Authentication
 
-A full-stack web application built with ASP.NET Core 9.0, Vue.js 3, and SQLite for managing articles, subscription packages, and customer orders.
+A comprehensive web application for managing articles, subscription packages, and orders with SMS notifications and role-based access control.
 
 ## Features
 
-### Core Functionality ✅ All Fully Implemented
-- **Article Management**: Complete CRUD operations with validation and error handling
-- **Subscription Package Management**: Full management of subscription offerings (digital and physical magazines)
-- **Order Processing**: Complete order system with multiple articles and/or subscription packages
-- **Order Management**: View, update status, and manage all customer orders
-- **Customer Tracking**: Identify customers by phone number with purchase history
-- **SMS Notifications**: Automatic SMS alerts for order confirmations and status updates
+- **User Authentication**: Secure login system with session management
+- **Role-Based Access Control**: Three user levels with different permissions
+- **Article Management**: Create, read, update, and delete articles with supplier information
+- **Subscription Packages**: Manage subscription offerings with physical magazine options
+- **Order Processing**: Handle customer orders with automatic SMS notifications
+- **User Management**: Admin interface for managing users and roles
+- **SMS Integration**: Automatic SMS confirmations and status updates
+- **Data Validation**: Comprehensive validation for all inputs
+- **Responsive Design**: Bootstrap-based UI that works on all devices
 
-### Business Rules
-- Each customer can purchase each unique article only once
-- Each customer can have at most one active subscription
-- Purchased items/packages cannot be deleted (maintains order history integrity)
-- Only pending orders can be deleted
-- Automatic rate limiting and failover for SMS services (5 SMS/minute per service)
+## User Roles
 
-### Technical Features
-- **Complete Frontend**: All views (Articles, Subscriptions, Orders, Purchase) fully functional
-- **Error Handling**: Comprehensive error detection and user-friendly messages
-- **Data Validation**: Client and server-side validation with real-time feedback
-- **Database Migrations**: Automatic database creation with Entity Framework Core
-- **RESTful API**: Clean API endpoints for all CRUD operations
-- **Responsive Design**: Bootstrap 5 for mobile-friendly interface
-- **SMS Service Architecture**: Dual SMS provider with automatic failover
-- **Real-time Updates**: Automatic data refresh after operations
+### 1. Regular User (Level 1)
+- **Access**: Can make purchases (articles and subscriptions)
+- **Permissions**: 
+  - View articles and subscription packages
+  - Create orders (Make Purchase)
+  - View all orders
+
+### 2. Editor (Level 2)
+- **Access**: Can manage shop content
+- **Permissions**: 
+  - All Regular User permissions
+  - Create, edit, and delete articles
+  - Create, edit, and delete subscription packages
+  - View all orders
+
+### 3. Admin (Level 3)
+- **Access**: Full system access
+- **Permissions**: 
+  - All Editor permissions
+  - Manage users (create, edit, delete users)
+  - Assign user roles
+  - Edit order status
+  - Delete orders
 
 ## Technology Stack
 
-- **Backend**: ASP.NET Core 9.0, C# 12
-- **Database**: SQLite with Entity Framework Core (Code First)
-- **Frontend**: Vue.js 3 (Composition API), Bootstrap 5, Font Awesome
-- **Architecture**: RESTful API, SPA (Single Page Application)
-- **Development**: Hot reload, comprehensive error handling
+- **Backend**: ASP.NET Core 9.0 with Entity Framework Core
+- **Database**: SQLite (with in-memory fallback)
+- **Frontend**: Vue.js 3 with Bootstrap 5
+- **Authentication**: Session-based authentication with SHA256 password hashing
+- **SMS Service**: Configurable SMS service manager
 
-## Installation & Setup (Windows 11)
+## Getting Started
 
 ### Prerequisites
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- Git
-- A code editor (Visual Studio, VS Code, or Rider)
 
-### Step 1: Clone the Repository
-```bash
-git clone <your-repository-url>
-cd WebShop
-```
+- .NET 9.0 SDK
+- Modern web browser
 
-### Step 2: Restore Dependencies
-```bash
-dotnet restore
-```
+### Installation
 
-### Step 3: Database Setup
+1. Clone the repository
+2. Navigate to the project directory
+3. Run the application:
 
-**Baza podatkov se ustvari AVTOMATSKO ob prvem zagonu aplikacije!**
-
-Entity Framework Code First pristop ustvari SQLite bazo in tabele samodejno na podlagi C# modelov. Ne potrebuješ ročno izvajati SQL ukazov.
-
-Če pa vseeno želiš **ročno pregledati ali ustvariti bazo**:
-
-#### Opcija A: Avtomatsko (priporočeno)
-Samo zaženi aplikacijo in EF Core bo ustvaril bazo:
 ```bash
 dotnet run
 ```
 
-Baza `webshop.db` bo ustvarjena v korenski mapi projekta.
+4. Open your browser and navigate to `http://localhost:5139`
 
-#### Opcija B: Ročno z SQLite orodji (če želiš pregledati bazo)
+### Default Login
 
-1. **Prenesi SQLite Tools za Windows:**
-   - Obišči: https://www.sqlite.org/download.html
-   - Prenesi "sqlite-tools-win-x64-XXXXXXX.zip"
-   - Razširi ZIP v mapo (npr. `C:\sqlite`)
+- **Username**: `admin`
+- **Password**: `admin123`
+- **Role**: Admin (full access)
 
-2. **Dodaj v PATH (opcijsko):**
-   - Desni klik na "This PC" → Properties
-   - Advanced system settings → Environment Variables
-   - V System Variables najdi "Path" in klikni Edit
-   - Dodaj pot do sqlite mape (npr. `C:\sqlite`)
+## User Interface Flow
 
-3. **Odpri bazo in preveri:**
-   ```bash
-   # V korenski mapi projekta
-   sqlite3 webshop.db
-   
-   # V SQLite konzoli:
-   .tables              # Prikaže vse tabele
-   .schema Articles     # Prikaže strukturo tabele
-   SELECT * FROM Articles;  # Prikaže podatke
-   .quit                # Izhod
-   ```
+### Login Process
+1. Navigate to the application URL
+2. You'll be automatically redirected to `/login.html`
+3. Enter credentials (use default admin account to start)
+4. Upon successful login, you'll be redirected to the main application
 
-#### Opcija C: Uporabi DB Browser for SQLite (GUI)
-1. Prenesi: https://sqlitebrowser.org/dl/
-2. Namesti aplikacijo
-3. Odpri `webshop.db` datoteko
-4. Grafični vmesnik omogoča pregled in urejanje podatkov
+### Role-Based Navigation
+The application automatically shows different views based on user role:
 
-### Step 4: Run the Application
+- **Admin**: Starts with User Management view
+- **Editor**: Starts with Articles view  
+- **Regular User**: Starts with Make Purchase view
+
+### Navigation Menu
+The navigation menu dynamically shows/hides options based on permissions:
+- Articles (visible to all authenticated users)
+- Subscriptions (visible to all authenticated users)
+- Orders (visible to all authenticated users)
+- Make Purchase (visible to Regular Users and above)
+- Users (visible to Admins only)
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/current` - Get current user info
+
+### User Management (Admin only)
+- `GET /api/users` - Get all users
+- `POST /api/users` - Create new user
+- `PUT /api/users/{id}` - Update user
+- `DELETE /api/users/{id}` - Delete user
+
+### Articles (Editor+ for modifications)
+- `GET /api/articles` - Get all articles
+- `GET /api/articles/{id}` - Get specific article
+- `POST /api/articles` - Create new article (Editor+)
+- `PUT /api/articles/{id}` - Update article (Editor+)
+- `DELETE /api/articles/{id}` - Delete article (Editor+)
+
+### Subscription Packages (Editor+ for modifications)
+- `GET /api/subscriptionpackages` - Get all packages
+- `GET /api/subscriptionpackages/{id}` - Get specific package
+- `POST /api/subscriptionpackages` - Create new package (Editor+)
+- `PUT /api/subscriptionpackages/{id}` - Update package (Editor+)
+- `DELETE /api/subscriptionpackages/{id}` - Delete package (Editor+)
+
+### Orders
+- `GET /api/orders` - Get all orders (Authenticated users)
+- `GET /api/orders/{id}` - Get specific order
+- `POST /api/orders` - Create new order (Regular User+)
+- `PUT /api/orders/{id}/status` - Update order status (Admin only)
+- `DELETE /api/orders/{id}` - Delete order (Admin only)
+
+## Business Rules
+
+- Each customer can purchase each unique article only once
+- Each customer can have at most one active subscription
+- Orders cannot contain duplicate articles
+- Confirmed orders cannot be deleted (only cancelled)
+- Articles that have been purchased cannot be deleted
+- Users cannot delete their own accounts
+- Default admin user is created automatically on first run
+
+## Security Features
+
+- Password hashing using SHA256 with salt
+- Session-based authentication with 2-hour timeout
+- Role-based authorization on all endpoints
+- Input validation and sanitization
+- CSRF protection through session management
+- Automatic logout on session expiry
+
+## User Interface Features
+
+The application automatically adapts the interface based on user roles:
+
+### Login Page
+- Clean, responsive login form with gradient background
+- Real-time validation feedback
+- Loading states and error messages
+- Default credentials displayed for convenience
+
+### Main Application
+- **Navigation**: Role-based menu items
+- **Buttons**: Edit/Delete buttons only visible to authorized users
+- **Views**: Default view set based on user role
+- **User Info**: Current user name and role displayed in navbar
+- **Logout**: Accessible from user dropdown menu
+
+### User Management (Admin Only)
+- Complete user CRUD operations
+- Role assignment with visual badges
+- User status management (Active/Inactive)
+- Password reset functionality
+- Prevent self-deletion
+
+## Testing the Application
+
+### 1. Authentication Testing
 ```bash
-dotnet run
+# Default admin login
+Username: admin
+Password: admin123
 ```
 
-Aplikacija bo dostopna na:
-- **HTTP**: http://localhost:5139 (or check console output for actual port)
-- **HTTPS**: https://localhost:7139 (or check console output for actual port)
+### 2. Role-Based Access Testing
 
-### Step 5: Access the Application
-Odpri brskalnik in pojdi na `http://localhost:5139` (ali na port, ki ga prikaže konzola)
+**As Admin:**
+1. Login with admin credentials
+2. Navigate to Users tab
+3. Create new users with different roles:
+   - Regular User: `user1` / `password123`
+   - Editor: `editor1` / `password123`
+4. Test user management (edit, delete)
+5. Test all other features (full access)
 
-## Database Schema
+**As Editor:**
+1. Logout and login as editor
+2. Verify access to Articles and Subscriptions management
+3. Verify no access to Users tab
+4. Test article/subscription CRUD operations
 
-Aplikacija uporablja Entity Framework Code First, tako da se baza ustvari iz C# modelov. SQL shema je definirana v komentarjih v `Data/AppDbContext.cs`.
+**As Regular User:**
+1. Logout and login as regular user
+2. Verify access only to Make Purchase
+3. Verify read-only access to Articles/Subscriptions
+4. Test order creation
 
-### Tables Created Automatically:
-- **Articles**: Articles/products for sale
+### 3. Security Testing
+- Try accessing `/api/users` without admin role (should return 403)
+- Try modifying articles without editor role (should return 403)
+- Test session timeout (2 hours)
+- Test logout functionality
+
+## SMS Configuration
+
+The application includes a configurable SMS service. To enable SMS functionality:
+
+1. Implement your SMS provider in the `SmsServiceManager`
+2. Configure your SMS credentials in `appsettings.json`
+
+## Database
+
+The application uses SQLite by default with automatic database initialization including:
+- Sample articles and subscription packages
+- Sample orders
+- Default admin user (`admin` / `admin123`)
+
+### Database Schema
+- **Users**: User accounts with roles and authentication
+- **Articles**: Products for sale
 - **SubscriptionPackages**: Subscription offerings
 - **Orders**: Customer orders
-- **OrderItems**: Junction table for order-article relationships
-
-### Initial Seed Data:
-Aplikacija ob prvem zagonu doda testne podatke:
-- 5 testnih artiklov z različnimi cenami in dobavitelji
-- 4 testne naročniške pakete (digitalni in fizični)
+- **OrderItems**: Order line items
 
 ## Project Structure
 
 ```
 WebShop/
-├── Models/              # Data models (Article, Order, etc.)
-├── Data/                # Database context and initialization
-├── Services/            # SMS service implementations
-├── Controllers/         # API controllers
-└── wwwroot/             # Static files (HTML, CSS, JS)
-    ├── index.html       # Main SPA page
-    ├── css/site.css     # Custom styles
-    └── js/app.js        # Vue.js application
+├── Models/
+│   ├── User.cs              # User model with roles
+│   ├── Article.cs           # Article model
+│   ├── Order.cs             # Order model
+│   └── ...
+├── Services/
+│   ├── IAuthService.cs      # Authentication interface
+│   ├── AuthService.cs       # Authentication implementation
+│   ├── ISessionService.cs   # Session management interface
+│   ├── SessionService.cs    # Session management implementation
+│   └── ...
+├── Controllers/
+│   ├── AuthController.cs    # Authentication endpoints
+│   ├── UsersController.cs   # User management endpoints
+│   └── ...
+├── Data/
+│   ├── AppDbContext.cs      # Database context with Users
+│   └── DatabaseInitializer.cs # Seed data including admin user
+└── wwwroot/
+    ├── login.html           # Login page
+    ├── index.html           # Main application (authenticated)
+    └── js/app.js            # Vue.js with authentication
 ```
-
-## API Endpoints
-
-### Articles
-- `GET /api/articles` - Get all articles
-- `GET /api/articles/{id}` - Get article by ID
-- `POST /api/articles` - Create new article
-- `PUT /api/articles/{id}` - Update article
-- `DELETE /api/articles/{id}` - Delete article
-
-### Subscription Packages
-- `GET /api/subscriptionpackages` - Get all packages
-- `GET /api/subscriptionpackages/{id}` - Get package by ID
-- `POST /api/subscriptionpackages` - Create new package
-- `PUT /api/subscriptionpackages/{id}` - Update package
-- `DELETE /api/subscriptionpackages/{id}` - Delete package
-
-### Orders
-- `GET /api/orders` - Get all orders
-- `GET /api/orders/{id}` - Get order by ID
-- `POST /api/orders` - Create new order
-- `PUT /api/orders/{id}/status` - Update order status
-- `DELETE /api/orders/{id}` - Delete order
-
-## SMS Service Architecture
-
-The application implements a dual SMS service provider system:
-
-### Design Pattern
-- **Strategy Pattern**: Interface-based SMS service abstraction
-- **Rate Limiting**: Sliding window algorithm (5 SMS/minute per service)
-- **Automatic Failover**: Switches to backup service when limit reached
-- **Singleton Manager**: Thread-safe SMS service coordination
-
-### Implementation
-```csharp
-// Send SMS with automatic failover
-await _smsService.SendSmsAsync(phoneNumber, message);
-```
-
-The `SmsServiceManager` automatically:
-1. Tries primary service (SmsService1)
-2. Falls back to secondary service (SmsService2) if limit reached
-3. Tracks usage with sliding window for accurate rate limiting
-4. Logs service usage for monitoring
 
 ## Development Notes
 
-### Error Handling
-- All API endpoints include try-catch blocks
-- User-friendly error messages returned as JSON
-- Validation errors include detailed field information
+### Authentication Flow
+1. User submits login form
+2. Server validates credentials and creates session
+3. Session stores user ID, username, role
+4. Frontend checks authentication on page load
+5. API endpoints validate session and role permissions
 
-### Business Logic Highlights
-- **Duplicate Purchase Prevention**: Checks existing orders before creating new ones
-- **Subscription Limits**: Validates one subscription per customer
-- **Cascade Delete Prevention**: Prevents deletion of purchased items
-- **Phone Number Validation**: E.164 international format
+### Session Management
+- Sessions stored in server memory
+- 2-hour timeout with automatic cleanup
+- Session data includes minimal user info (no sensitive data)
+- Logout clears session completely
 
-### Performance Considerations
-- Database indexes on frequently queried fields (phone number, order number)
-- Eager loading for related entities (Include/ThenInclude)
-- Efficient LINQ queries with projection for API responses
-
-## Testing the Application
-
-### Complete Test Flow ✅
-1. **Articles Management**:
-   - Navigate to **Articles** tab
-   - Add, edit, and delete articles
-   - Test validation (required fields, price limits)
-
-2. **Subscription Management**:
-   - Navigate to **Subscriptions** tab  
-   - Add subscription packages (digital/physical magazine options)
-   - Edit existing packages
-   - Test deletion (should fail if package has orders)
-
-3. **Order Processing**:
-   - Navigate to **Make Purchase** tab
-   - Enter phone number: `+38640123456`
-   - Select articles and/or subscription package
-   - Place order and verify SMS notification
-
-4. **Order Management**:
-   - Navigate to **Orders** tab
-   - View all orders with details
-   - Click "View" to see order details modal
-   - Update order status (triggers SMS notification)
-   - Test order deletion (only pending orders)
-
-5. **Business Rule Testing**:
-   - Try to purchase same items again (should fail)
-   - Try to add second subscription for same customer (should fail)
-   - Try to delete purchased articles (should fail)
+### Role-Based UI
+- Vue.js methods check user role for UI elements
+- Navigation items conditionally rendered
+- Buttons/forms hidden based on permissions
+- Default views set based on role level
 
 ## Troubleshooting
 
-### Database Issues
-If database gets corrupted, simply delete `webshop.db` and restart the application. It will be recreated automatically.
+### Authentication Issues
+- Clear browser cookies/session storage
+- Check console for authentication errors
+- Verify default admin user exists in database
 
-### Port Already in Use
-Change the port in `Program.cs` or `launchSettings.json`
+### Permission Denied
+- Check user role in navbar
+- Verify API endpoint permissions
+- Test with admin account first
 
-### SQLite Locked Database
-Close any open connections in DB Browser or sqlite3 console
-
-## Recent Updates ✅
-
-### Latest Fixes (Current Commit)
-- **Fixed all unbinded frontend elements**: All views now fully functional
-- **Added missing Subscriptions view**: Complete CRUD operations with table display
-- **Added missing Orders view**: Full order management with status updates
-- **Enhanced SubscriptionPackage model**: Added `IncludesPhysicalMagazine` property
-- **Improved error handling**: Comprehensive user feedback across all operations
-- **Fixed database context warnings**: Added required modifiers to DbSet properties
-- **Enhanced form validation**: Client-side validation for all forms
-- **Improved data loading**: Proper array initialization and error states
-
-### Application Status
-- ✅ **Articles**: Fully functional (Create, Read, Update, Delete)
-- ✅ **Subscriptions**: Fully functional (Create, Read, Update, Delete)  
-- ✅ **Orders**: Fully functional (View, Update Status, Delete)
-- ✅ **Purchase**: Fully functional (Create orders with validation)
-- ✅ **SMS Integration**: Working with dual provider failover
-- ✅ **Error Handling**: Comprehensive across all components
-
-## Git Repository Setup
-
-```bash
-# Add all files
-git add .
-
-# Commit with current fixes
-git commit -m "Fix: Complete frontend implementation - all views now functional
-
-- Add missing Subscriptions and Orders views with full CRUD operations
-- Fix SubscriptionPackage model with IncludesPhysicalMagazine property
-- Enhance error handling and form validation across all components
-- Fix database context warnings with required modifiers
-- Improve data loading with proper array initialization
-- All frontend elements now properly bound to backend APIs"
-
-# Push to remote (if already set up)
-git push
-```
+### Session Timeout
+- Sessions expire after 2 hours of inactivity
+- User will be redirected to login page
+- No data loss - just need to re-authenticate
 
 ## Future Enhancements
 
-- User authentication and authorization
-- Advanced search and filtering
-- Order history reports
-- Email notifications
-- Payment integration
-- Image upload for articles
-- Advanced analytics dashboard
+- JWT token-based authentication
+- Password complexity requirements
+- Account lockout after failed attempts
+- Email verification for new users
+- Two-factor authentication
+- Audit logging for user actions
+- Password reset via email
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test authentication and authorization
+5. Submit a pull request
 
 ## License
 

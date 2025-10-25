@@ -1,5 +1,5 @@
-using System;
-using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using WebShop.Models;
 
 namespace WebShop.Data;
@@ -10,6 +10,23 @@ public static class DatabaseInitializer
     {
         // Ensure database is created (works for InMemory and SQLite)
         context.Database.EnsureCreated();
+
+        // Create default admin user if no users exist
+        if (!context.Users.Any())
+        {
+            var defaultAdmin = new User
+            {
+                Username = "admin",
+                PasswordHash = HashPassword("admin123"),
+                FullName = "System Administrator",
+                Email = "admin@webshop.com",
+                Role = UserRole.Admin,
+                DateCreated = DateTime.UtcNow
+            };
+
+            context.Users.Add(defaultAdmin);
+            context.SaveChanges();
+        }
 
         // Seed Articles and SubscriptionPackages if missing
         if (!context.Articles.Any())
@@ -168,5 +185,12 @@ public static class DatabaseInitializer
                 context.SaveChanges();
             }
         }
+    }
+
+    private static string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + "WebShopSalt2024"));
+        return Convert.ToBase64String(hashedBytes);
     }
 }

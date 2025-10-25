@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebShop - Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .login-header p {
+            color: #666;
+            margin: 0;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="loginApp">
+        <div class="login-card">
+            <div class="login-header">
+                <h2><i class="fas fa-shopping-cart text-primary"></i> WebShop</h2>
+                <p>Please sign in to continue</p>
+            </div>
+
+            <!-- Alert Messages -->
+            <div v-if="alert.show" :class="'alert alert-' + alert.type + ' alert-dismissible fade show'" role="alert">
+                {{ alert.message }}
+                <button type="button" class="btn-close" @click="alert.show = false"></button>
+            </div>
+
+            <form @submit.prevent="login">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" v-model="loginForm.username" 
+                               placeholder="Enter your username" required>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" v-model="loginForm.password" 
+                               placeholder="Enter your password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login w-100" :disabled="isLoading">
+                    <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                    <i v-else class="fas fa-sign-in-alt me-2"></i>
+                    {{ isLoading ? 'Signing in...' : 'Sign In' }}
+                </button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <small class="text-muted">
+                    Default admin: <strong>admin</strong> / <strong>admin123</strong>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isLoading: false,
+                    loginForm: {
+                        username: '',
+                        password: ''
+                    },
+                    alert: {
+                        show: false,
+                        message: '',
+                        type: 'info'
+                    }
+                };
+            },
+            methods: {
+                async login() {
+                    if (!this.loginForm.username || !this.loginForm.password) {
+                        this.showAlert('Please enter both username and password', 'danger');
+                        return;
+                    }
+
+                    this.isLoading = true;
+
+                    try {
+                        const response = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.loginForm)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.showAlert('Login successful! Redirecting...', 'success');
+                            setTimeout(() => {
+                                window.location.href = '/index.html';
+                            }, 1000);
+                        } else {
+                            this.showAlert(data.error || 'Login failed', 'danger');
+                        }
+                    } catch (error) {
+                        this.showAlert('Network error. Please try again.', 'danger');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                showAlert(message, type = 'info') {
+                    this.alert = {
+                        show: true,
+                        message,
+                        type
+                    };
+
+                    setTimeout(() => {
+                        this.alert.show = false;
+                    }, 5000);
+                }
+            }
+        }).mount('#loginApp');
+    </script>
+</body>
+</html>

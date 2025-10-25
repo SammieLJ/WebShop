@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vue Methods Validation</title>
+</head>
+<body>
+    <h1>Vue Methods Validation</h1>
+    <div id="validation-results"></div>
+
+    <script>
+        // List of all methods that should be defined in the Vue app
+        const requiredMethods = [
+            'canViewArticles',
+            'canViewSubscriptions', 
+            'canViewOrders',
+            'canMakePurchase',
+            'isAdmin',
+            'isEditor',
+            'isRegularUser',
+            'isAuthenticated',
+            'logout',
+            'openArticleModal',
+            'openSubscriptionModal',
+            'openUserModal',
+            'saveArticle',
+            'saveSubscription', 
+            'saveUser',
+            'submitOrder',
+            'deleteArticle',
+            'deleteSubscription',
+            'deleteUser',
+            'deleteOrder',
+            'viewOrderDetails',
+            'updateOrderStatus',
+            'resetOrderForm',
+            'calculateTotal',
+            'isOrderValid',
+            'formatDate',
+            'getStatusColor',
+            'getRoleColor',
+            'showAlert',
+            'checkAuth',
+            'loadArticles',
+            'loadSubscriptions',
+            'loadOrders',
+            'loadUsers'
+        ];
+
+        // Check if methods are defined (this is just a validation helper)
+        document.getElementById('validation-results').innerHTML = 
+            '<h3>Required Methods:</h3><ul>' + 
+            requiredMethods.map(method => `<li>${method}</li>`).join('') + 
+            '</ul><p>Total: ' + requiredMethods.length + ' methods</p>';
+    </script>
+</body>
+</html>

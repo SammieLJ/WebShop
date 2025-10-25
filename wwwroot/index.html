@@ -9,34 +9,90 @@
     <link href="/css/site.css" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#"><i class="fas fa-shopping-cart"></i> WebShop</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
+    <!-- Loading screen while checking authentication -->
+    <div id="loading-screen" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="text-center">
+            <div class="spinner-border mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4>Loading WebShop...</h4>
+            <p>Checking authentication...</p>
+        </div>
+    </div>
+
+    <!-- Error screen for authentication failures -->
+    <div id="auth-error-screen" style="display: none; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <h4>Access Denied</h4>
+            <p>You are not authorized to access this page.</p>
+            <p>Please log in with valid credentials.</p>
+            <a href="/login.html" class="btn btn-light mt-3">
+                <i class="fas fa-sign-in-alt"></i> Go to Login
+            </a>
+        </div>
+    </div>
+
+    <!-- Main application (hidden initially) -->
+    <div id="app" style="display: none;">
+        <!-- Loading state within Vue app -->
+        <div v-if="!isReady" class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4>Initializing Application...</h4>
+                <p>Please wait while we set up your workspace.</p>
+            </div>
+        </div>
+
+        <!-- Main application content -->
+        <div v-if="isReady">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="#"><i class="fas fa-shopping-cart"></i> WebShop</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav">
+                            <li class="nav-item" v-if="canViewArticles()">
                             <a class="nav-link" :class="{active: currentView === 'articles'}" @click="currentView = 'articles'" href="#">
                                 <i class="fas fa-box"></i> Articles
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" v-if="canViewSubscriptions()">
                             <a class="nav-link" :class="{active: currentView === 'subscriptions'}" @click="currentView = 'subscriptions'" href="#">
                                 <i class="fas fa-newspaper"></i> Subscriptions
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" v-if="canViewOrders()">
                             <a class="nav-link" :class="{active: currentView === 'orders'}" @click="currentView = 'orders'" href="#">
                                 <i class="fas fa-receipt"></i> Orders
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" v-if="canMakePurchase()">
                             <a class="nav-link" :class="{active: currentView === 'purchase'}" @click="currentView = 'purchase'" href="#">
                                 <i class="fas fa-shopping-bag"></i> Make Purchase
                             </a>
+                        </li>
+                        <li class="nav-item" v-if="isAdmin()">
+                            <a class="nav-link" :class="{active: currentView === 'users'}" @click="currentView = 'users'" href="#">
+                                <i class="fas fa-users"></i> Users
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto" v-if="currentUser">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ currentUser.fullName }}
+                                <span class="badge bg-secondary ms-1">{{ currentUser.role }}</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" @click="logout">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </a></li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -54,7 +110,7 @@
             <div v-if="currentView === 'articles'">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2><i class="fas fa-box"></i> Articles</h2>
-                    <button class="btn btn-primary" @click="openArticleModal()">
+                    <button class="btn btn-primary" @click="openArticleModal()" v-if="isEditor()">
                         <i class="fas fa-plus"></i> Add Article
                     </button>
                 </div>
@@ -85,7 +141,7 @@
                                 <td>{{ article.supplierEmail }}</td>
                                 <td>{{ formatDate(article.dateCreated) }}</td>
                                 <td>
-                                    <div class="btn-group" role="group">
+                                    <div class="btn-group" role="group" v-if="isEditor()">
                                         <button class="btn btn-sm btn-primary" @click="openArticleModal(article)">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
@@ -93,6 +149,7 @@
                                             <i class="fas fa-trash"></i> Delete
                                         </button>
                                     </div>
+                                    <span v-else class="text-muted">View Only</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -104,7 +161,7 @@
             <div v-if="currentView === 'subscriptions'">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2><i class="fas fa-newspaper"></i> Subscription Packages</h2>
-                    <button class="btn btn-primary" @click="openSubscriptionModal()">
+                    <button class="btn btn-primary" @click="openSubscriptionModal()" v-if="isEditor()">
                         <i class="fas fa-plus"></i> Add Subscription Package
                     </button>
                 </div>
@@ -138,7 +195,7 @@
                                 </td>
                                 <td>{{ formatDate(subscription.dateCreated) }}</td>
                                 <td>
-                                    <div class="btn-group" role="group">
+                                    <div class="btn-group" role="group" v-if="isEditor()">
                                         <button class="btn btn-sm btn-primary" @click="openSubscriptionModal(subscription)">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
@@ -146,6 +203,7 @@
                                             <i class="fas fa-trash"></i> Delete
                                         </button>
                                     </div>
+                                    <span v-else class="text-muted">View Only</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -192,7 +250,66 @@
                                             <i class="fas fa-eye"></i> View
                                         </button>
                                         <button class="btn btn-sm btn-danger" @click="deleteOrder(order.id)" 
-                                                v-if="order.status !== 'Confirmed'">
+                                                v-if="isAdmin() && order.status !== 'Confirmed'">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users View -->
+            <div v-if="currentView === 'users' && isAdmin()">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-users"></i> User Management</h2>
+                    <button class="btn btn-primary" @click="openUserModal()">
+                        <i class="fas fa-plus"></i> Add User
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-if="!users">
+                                <td colspan="7" class="text-center">Loading users...</td>
+                            </tr>
+                            <tr v-else-if="users.length === 0">
+                                <td colspan="7" class="text-center">No users available</td>
+                            </tr>
+                            <tr v-else v-for="user in users" :key="user.id">
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.fullName }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span :class="'badge bg-' + getRoleColor(user.role)">{{ user.role }}</span>
+                                </td>
+                                <td>
+                                    <span :class="'badge bg-' + (user.isActive ? 'success' : 'danger')">
+                                        {{ user.isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td>{{ user.lastLogin ? formatDate(user.lastLogin) : 'Never' }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-primary" @click="openUserModal(user)">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @click="deleteUser(user.id)" 
+                                                v-if="user.id !== currentUser?.id">
                                             <i class="fas fa-trash"></i> Delete
                                         </button>
                                     </div>
@@ -374,6 +491,69 @@
             </div>
         </div>
 
+        <!-- User Modal -->
+        <div class="modal fade" id="userModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ userForm.id ? 'Edit User' : 'Add User' }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="saveUser">
+                            <div class="mb-3">
+                                <label class="form-label">Username *</label>
+                                <input type="text" class="form-control" v-model="userForm.username" 
+                                       :disabled="userForm.id" required maxlength="100">
+                                <small class="text-muted" v-if="userForm.id">Username cannot be changed</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" v-model="userForm.fullName" required maxlength="100">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" v-model="userForm.email" required maxlength="255">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Role *</label>
+                                <select class="form-select" v-model="userForm.role" required>
+                                    <option value="RegularUser">Regular User</option>
+                                    <option value="Editor">Editor</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                                <small class="text-muted">
+                                    Regular User: Can make purchases | Editor: Can manage articles & subscriptions | Admin: Full access
+                                </small>
+                            </div>
+                            <div class="mb-3" v-if="userForm.id">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" v-model="userForm.isActive" id="userActive">
+                                    <label class="form-check-label" for="userActive">
+                                        Active User
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{{ userForm.id ? 'New Password (leave empty to keep current)' : 'Password *' }}</label>
+                                <input type="password" class="form-control" v-model="userForm.password" 
+                                       :required="!userForm.id" minlength="6">
+                                <small class="text-muted">Minimum 6 characters</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Order Details Modal -->
         <div class="modal fade" id="orderDetailsModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
@@ -430,7 +610,7 @@
                             <strong>Total Price: €{{ selectedOrder.totalPrice.toFixed(2) }}</strong>
                         </div>
 
-                        <div class="mt-3">
+                        <div class="mt-3" v-if="isAdmin()">
                             <label class="form-label"><strong>Update Status:</strong></label>
                             <select class="form-select" v-model="selectedOrder.status" @change="updateOrderStatus(selectedOrder.id, selectedOrder.status)">
                                 <option value="Pending">Pending</option>
@@ -442,10 +622,31 @@
                 </div>
             </div>
         </div>
+        </div> <!-- End of v-if="isReady" -->
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script>
+        // Fallback if Vue.js fails to load or app fails to mount
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const appDiv = document.getElementById('app');
+            const errorScreen = document.getElementById('auth-error-screen');
+            
+            // If still showing loading screen after 10 seconds, something went wrong
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                console.error('Vue app failed to load properly, showing fallback');
+                loadingScreen.style.display = 'none';
+                errorScreen.style.display = 'flex';
+                
+                // Try to redirect after 3 seconds
+                setTimeout(function() {
+                    window.location.href = '/login.html';
+                }, 3000);
+            }
+        }, 10000);
+    </script>
     <script src="/js/app.js"></script>
 </body>
 </html>
