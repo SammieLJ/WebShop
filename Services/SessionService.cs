@@ -19,6 +19,7 @@ public class SessionService : ISessionService
             session.SetInt32("UserId", user.Id);
             session.SetString("Username", user.Username);
             session.SetString("FullName", user.FullName);
+            session.SetString("Email", user.Email);
             session.SetInt32("UserRole", (int)user.Role);
         }
     }
@@ -31,18 +32,19 @@ public class SessionService : ISessionService
         var userId = session.GetInt32("UserId");
         var username = session.GetString("Username");
         var fullName = session.GetString("FullName");
+        var email = session.GetString("Email");
         var userRole = session.GetInt32("UserRole");
 
         if (userId.HasValue && !string.IsNullOrEmpty(username) && 
-            !string.IsNullOrEmpty(fullName) && userRole.HasValue)
+            !string.IsNullOrEmpty(fullName) && !string.IsNullOrEmpty(email) && userRole.HasValue)
         {
             return new User
             {
                 Id = userId.Value,
                 Username = username,
                 FullName = fullName,
+                Email = email,
                 Role = (UserRole)userRole.Value,
-                Email = "", // Not stored in session for security
                 PasswordHash = "" // Never store in session
             };
         }

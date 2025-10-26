@@ -21,6 +21,8 @@ public class Article
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string SupplierEmail { get; set; } = string.Empty;
     
+    public bool IsActive { get; set; } = true;
+    
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     
     // Navigation property

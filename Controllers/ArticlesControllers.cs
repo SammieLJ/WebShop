@@ -25,7 +25,15 @@ public class ArticlesController : ControllerBase
     {
         try
         {
-            return await _context.Articles.OrderByDescending(a => a.DateCreated).ToListAsync();
+            // Editors and Admins see all articles, Regular users see only active ones
+            var query = _context.Articles.AsQueryable();
+            
+            if (!_sessionService.IsEditor())
+            {
+                query = query.Where(a => a.IsActive);
+            }
+            
+            return await query.OrderByDescending(a => a.DateCreated).ToListAsync();
         }
         catch (Exception ex)
         {
@@ -114,6 +122,7 @@ public class ArticlesController : ControllerBase
             existingArticle.Description = article.Description;
             existingArticle.Price = article.Price;
             existingArticle.SupplierEmail = article.SupplierEmail;
+            existingArticle.IsActive = article.IsActive;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -155,13 +164,18 @@ public class ArticlesController : ControllerBase
             // Check if article has been purchased
             if (article.OrderItems.Any())
             {
-                return BadRequest(new 
+                // Instead of deleting, deactivate the article
+                article.IsActive = false;
+                await _context.SaveChangesAsync();
+                
+                return Ok(new 
                 { 
-                    error = "Cannot delete article that has been purchased",
-                    message = $"This article appears in {article.OrderItems.Count} order(s). Articles that have been purchased cannot be deleted to maintain order history integrity."
+                    message = "Article has been deactivated instead of deleted",
+                    reason = $"This article appears in {article.OrderItems.Count} order(s). It has been marked as inactive to preserve order history."
                 });
             }
 
+            // If no orders, we can safely delete
             _context.Articles.Remove(article);
             await _context.SaveChangesAsync();
 

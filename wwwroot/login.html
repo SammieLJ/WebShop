@@ -100,71 +100,65 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
     <script>
-        const { createApp } = Vue;
+        // Safely access Vue (use window.Vue) and initialize the login app.
+        const createApp = window.Vue && window.Vue.createApp ? window.Vue.createApp : null;
 
-        createApp({
-            data() {
-                return {
-                    isLoading: false,
-                    loginForm: {
-                        username: '',
-                        password: ''
-                    },
-                    alert: {
-                        show: false,
-                        message: '',
-                        type: 'info'
-                    }
-                };
-            },
-            methods: {
-                async login() {
-                    if (!this.loginForm.username || !this.loginForm.password) {
-                        this.showAlert('Please enter both username and password', 'danger');
-                        return;
-                    }
-
-                    this.isLoading = true;
-
-                    try {
-                        const response = await fetch('/api/auth/login', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(this.loginForm)
-                        });
-
-                        const data = await response.json();
-
-                        if (response.ok) {
-                            this.showAlert('Login successful! Redirecting...', 'success');
-                            setTimeout(() => {
-                                window.location.href = '/index.html';
-                            }, 1000);
-                        } else {
-                            this.showAlert(data.error || 'Login failed', 'danger');
-                        }
-                    } catch (error) {
-                        this.showAlert('Network error. Please try again.', 'danger');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                showAlert(message, type = 'info') {
-                    this.alert = {
-                        show: true,
-                        message,
-                        type
-                    };
-
-                    setTimeout(() => {
-                        this.alert.show = false;
-                    }, 5000);
-                }
+        if (!createApp) {
+            console.error('Vue is not available on window in login.html. Ensure the Vue script is loaded before this script.');
+            const loginApp = document.getElementById('loginApp');
+            if (loginApp) {
+                loginApp.innerHTML = '<div class="login-card text-center">'
+                    + '<p class="text-danger">Application failed to load. Please refresh the page.</p>'
+                    + '<a href="/index.html" class="btn btn-light mt-3">Go Home</a>'
+                    + '</div>';
             }
-        }).mount('#loginApp');
+        } else {
+            createApp({
+                data() {
+                    return {
+                        isLoading: false,
+                        loginForm: { username: '', password: '' },
+                        alert: { show: false, message: '', type: 'info' }
+                    };
+                },
+                methods: {
+                    async login() {
+                        if (!this.loginForm.username || !this.loginForm.password) {
+                            this.showAlert('Please enter both username and password', 'danger');
+                            return;
+                        }
+
+                        this.isLoading = true;
+
+                        try {
+                            const response = await fetch('/api/auth/login', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(this.loginForm)
+                            });
+
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                this.showAlert('Login successful! Redirecting...', 'success');
+                                setTimeout(() => { window.location.href = '/index.html'; }, 1000);
+                            } else {
+                                this.showAlert(data.error || 'Login failed', 'danger');
+                            }
+                        } catch (error) {
+                            this.showAlert('Network error. Please try again.', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+
+                    showAlert(message, type = 'info') {
+                        this.alert = { show: true, message, type };
+                        setTimeout(() => { this.alert.show = false; }, 5000);
+                    }
+                }
+            }).mount('#loginApp');
+        }
     </script>
 </body>
 </html>

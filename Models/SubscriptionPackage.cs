@@ -16,6 +16,8 @@ public class SubscriptionPackage
     public decimal Price { get; set; }
 
     public bool IncludesPhysicalMagazine { get; set; } = false;
+    
+    public bool IsActive { get; set; } = true;
 
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 

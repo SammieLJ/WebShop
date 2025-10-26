@@ -20,6 +20,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        Console.WriteLine($"Login attempt for username: {request.Username}");
+        
         if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
         {
             return BadRequest(new { error = "Username and password are required" });
@@ -28,10 +30,13 @@ public class AuthController : ControllerBase
         var user = await _authService.AuthenticateAsync(request.Username, request.Password);
         if (user == null)
         {
+            Console.WriteLine("Authentication failed - invalid credentials");
             return Unauthorized(new { error = "Invalid username or password" });
         }
 
+        Console.WriteLine($"Authentication successful for user: {user.Username} (ID: {user.Id})");
         _sessionService.SetCurrentUser(user);
+        Console.WriteLine("User set in session");
 
         return Ok(new
         {
@@ -54,20 +59,28 @@ public class AuthController : ControllerBase
     [HttpGet("current")]
     public IActionResult GetCurrentUser()
     {
+        Console.WriteLine("GetCurrentUser called");
         var user = _sessionService.GetCurrentUser();
+        Console.WriteLine($"Session user: {(user != null ? $"ID={user.Id}, Username={user.Username}" : "null")}");
+        
         if (user == null)
         {
+            Console.WriteLine("User is null, returning Unauthorized");
             return Unauthorized(new { error = "Not authenticated" });
         }
 
-        return Ok(new
+        var response = new
         {
             id = user.Id,
             username = user.Username,
             fullName = user.FullName,
+            email = user.Email,
             role = user.Role.ToString(),
             roleLevel = (int)user.Role
-        });
+        };
+        
+        Console.WriteLine($"Returning user data: {response}");
+        return Ok(response);
     }
 }
 

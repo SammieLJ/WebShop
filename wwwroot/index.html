@@ -7,6 +7,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <link href="/css/site.css" rel="stylesheet">
+    <style>[v-cloak] { display: none !important; }</style>
 </head>
 <body>
     <!-- Loading screen while checking authentication -->
@@ -34,7 +35,7 @@
     </div>
 
     <!-- Main application (hidden initially) -->
-    <div id="app" style="display: none;">
+    <div id="app" v-cloak style="display: none;">
         <!-- Loading state within Vue app -->
         <div v-if="!isReady" class="d-flex justify-content-center align-items-center" style="height: 100vh;">
             <div class="text-center">
@@ -123,22 +124,28 @@
                                 <th>Description</th>
                                 <th>Price</th>
                                 <th>Supplier Email</th>
+                                <th>Status</th>
                                 <th>Date Created</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-if="!articles">
-                                <td colspan="6" class="text-center">Loading articles...</td>
+                                <td colspan="7" class="text-center">Loading articles...</td>
                             </tr>
                             <tr v-else-if="articles.length === 0">
-                                <td colspan="6" class="text-center">No articles available</td>
+                                <td colspan="7" class="text-center">No articles available</td>
                             </tr>
-                            <tr v-else v-for="article in articles" :key="article.id">
+                            <tr v-else v-for="article in articles" :key="article.id" :class="{'table-secondary': !article.isActive}">
                                 <td>{{ article.name }}</td>
                                 <td>{{ article.description }}</td>
                                 <td>€{{ article.price.toFixed(2) }}</td>
                                 <td>{{ article.supplierEmail }}</td>
+                                <td>
+                                    <span :class="'badge bg-' + (article.isActive ? 'success' : 'secondary')">
+                                        {{ article.isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
                                 <td>{{ formatDate(article.dateCreated) }}</td>
                                 <td>
                                     <div class="btn-group" role="group" v-if="isEditor()">
@@ -174,24 +181,30 @@
                                 <th>Description</th>
                                 <th>Price</th>
                                 <th>Physical Magazine</th>
+                                <th>Status</th>
                                 <th>Date Created</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-if="!subscriptions">
-                                <td colspan="6" class="text-center">Loading subscription packages...</td>
+                                <td colspan="7" class="text-center">Loading subscription packages...</td>
                             </tr>
                             <tr v-else-if="subscriptions.length === 0">
-                                <td colspan="6" class="text-center">No subscription packages available</td>
+                                <td colspan="7" class="text-center">No subscription packages available</td>
                             </tr>
-                            <tr v-else v-for="subscription in subscriptions" :key="subscription.id">
+                            <tr v-else v-for="subscription in subscriptions" :key="subscription.id" :class="{'table-secondary': !subscription.isActive}">
                                 <td>{{ subscription.name }}</td>
                                 <td>{{ subscription.description }}</td>
                                 <td>€{{ subscription.price.toFixed(2) }}</td>
                                 <td>
                                     <span v-if="subscription.includesPhysicalMagazine" class="badge bg-success">Yes</span>
                                     <span v-else class="badge bg-secondary">No</span>
+                                </td>
+                                <td>
+                                    <span :class="'badge bg-' + (subscription.isActive ? 'success' : 'secondary')">
+                                        {{ subscription.isActive ? 'Active' : 'Inactive' }}
+                                    </span>
                                 </td>
                                 <td>{{ formatDate(subscription.dateCreated) }}</td>
                                 <td>
@@ -431,6 +444,14 @@
                                 <label class="form-label">Supplier Email *</label>
                                 <input type="email" class="form-control" v-model="articleForm.supplierEmail" required>
                             </div>
+                            <div class="mb-3" v-if="articleForm.id">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" v-model="articleForm.isActive" id="articleActive">
+                                    <label class="form-check-label" for="articleActive">
+                                        Active (visible for new purchases)
+                                    </label>
+                                </div>
+                            </div>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save"></i> Save
@@ -474,6 +495,14 @@
                                            v-model="subscriptionForm.includesPhysicalMagazine" id="physicalMag">
                                     <label class="form-check-label" for="physicalMag">
                                         Includes Physical Magazine
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3" v-if="subscriptionForm.id">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" v-model="subscriptionForm.isActive" id="subscriptionActive">
+                                    <label class="form-check-label" for="subscriptionActive">
+                                        Active (visible for new purchases)
                                     </label>
                                 </div>
                             </div>
@@ -625,8 +654,10 @@
         </div> <!-- End of v-if="isReady" -->
     </div>
 
+    <!-- Load bootstrap first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Use local Vue build -->
+    <script src="/js/vue.global.prod.min.js"></script>
     <script>
         // Fallback if Vue.js fails to load or app fails to mount
         setTimeout(function() {
@@ -647,6 +678,7 @@
             }
         }, 10000);
     </script>
-    <script src="/js/app.js"></script>
+    <!-- Load the updated app script (versioned) to avoid cached old app.js -->
+    <script src="/js/app.v2.js"></script>
 </body>
 </html>

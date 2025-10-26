@@ -6,13 +6,15 @@ A comprehensive web application for managing articles, subscription packages, an
 
 - **User Authentication**: Secure login system with session management
 - **Role-Based Access Control**: Three user levels with different permissions
-- **Article Management**: Create, read, update, and delete articles with supplier information
+- **Article Management**: Create, read, update, and deactivate articles with supplier information
 - **Subscription Packages**: Manage subscription offerings with physical magazine options
+- **Smart Delete System**: Items with orders are deactivated instead of deleted to preserve data integrity
 - **Order Processing**: Handle customer orders with automatic SMS notifications
 - **User Management**: Admin interface for managing users and roles
 - **SMS Integration**: Automatic SMS confirmations and status updates
 - **Data Validation**: Comprehensive validation for all inputs
 - **Responsive Design**: Bootstrap-based UI that works on all devices
+- **Local Vue.js**: Self-contained with no external CDN dependencies
 
 ## User Roles
 
@@ -110,18 +112,18 @@ The navigation menu dynamically shows/hides options based on permissions:
 - `DELETE /api/users/{id}` - Delete user
 
 ### Articles (Editor+ for modifications)
-- `GET /api/articles` - Get all articles
+- `GET /api/articles` - Get articles (filtered by role: Editors see all, Users see active only)
 - `GET /api/articles/{id}` - Get specific article
 - `POST /api/articles` - Create new article (Editor+)
-- `PUT /api/articles/{id}` - Update article (Editor+)
-- `DELETE /api/articles/{id}` - Delete article (Editor+)
+- `PUT /api/articles/{id}` - Update article including IsActive status (Editor+)
+- `DELETE /api/articles/{id}` - Smart delete: deactivates if has orders, deletes if none (Editor+)
 
 ### Subscription Packages (Editor+ for modifications)
-- `GET /api/subscriptionpackages` - Get all packages
+- `GET /api/subscriptionpackages` - Get packages (filtered by role: Editors see all, Users see active only)
 - `GET /api/subscriptionpackages/{id}` - Get specific package
 - `POST /api/subscriptionpackages` - Create new package (Editor+)
-- `PUT /api/subscriptionpackages/{id}` - Update package (Editor+)
-- `DELETE /api/subscriptionpackages/{id}` - Delete package (Editor+)
+- `PUT /api/subscriptionpackages/{id}` - Update package including IsActive status (Editor+)
+- `DELETE /api/subscriptionpackages/{id}` - Smart delete: deactivates if has orders, deletes if none (Editor+)
 
 ### Orders
 - `GET /api/orders` - Get all orders (Authenticated users)
@@ -136,9 +138,33 @@ The navigation menu dynamically shows/hides options based on permissions:
 - Each customer can have at most one active subscription
 - Orders cannot contain duplicate articles
 - Confirmed orders cannot be deleted (only cancelled)
-- Articles that have been purchased cannot be deleted
+- **Smart Delete Protection**: Articles/subscriptions with existing orders are automatically deactivated instead of deleted
+- **Data Integrity**: Deactivated items are hidden from new purchases but preserved in order history
 - Users cannot delete their own accounts
 - Default admin user is created automatically on first run
+
+## Smart Delete System
+
+The application implements intelligent deletion logic to protect business data:
+
+### Articles & Subscription Packages
+- **Items with orders**: Automatically deactivated (marked as inactive) instead of deleted
+- **Items without orders**: Permanently deleted as normal
+- **User feedback**: Clear messages explain whether item was deleted or deactivated
+
+### Status Management
+- **Active items**: Visible to all users for new purchases
+- **Inactive items**: 
+  - Hidden from regular users in purchase views
+  - Visible to Editors/Admins with gray background and "Inactive" badge
+  - Can be reactivated by editing and checking "Active" checkbox
+  - Preserved in all existing order records
+
+### Benefits
+- **Data Integrity**: Order history remains complete and accurate
+- **Business Continuity**: No broken references in customer orders
+- **Flexibility**: Items can be reactivated if needed
+- **Audit Trail**: Complete transaction history is maintained
 
 ## Security Features
 
@@ -205,7 +231,16 @@ Password: admin123
 3. Verify read-only access to Articles/Subscriptions
 4. Test order creation
 
-### 3. Security Testing
+### 3. Smart Delete Testing
+**Test Article/Subscription Deletion:**
+1. Create a test order with some articles/subscriptions
+2. As Editor/Admin, try to "delete" those items
+3. Verify they become inactive instead of deleted
+4. Check that they're hidden from purchase view for regular users
+5. Verify they still appear in order history
+6. Test reactivating items by editing and checking "Active" checkbox
+
+### 4. Security Testing
 - Try accessing `/api/users` without admin role (should return 403)
 - Try modifying articles without editor role (should return 403)
 - Test session timeout (2 hours)
@@ -227,10 +262,10 @@ The application uses SQLite by default with automatic database initialization in
 
 ### Database Schema
 - **Users**: User accounts with roles and authentication
-- **Articles**: Products for sale
-- **SubscriptionPackages**: Subscription offerings
-- **Orders**: Customer orders
-- **OrderItems**: Order line items
+- **Articles**: Products for sale with IsActive status for soft deletion
+- **SubscriptionPackages**: Subscription offerings with IsActive status for soft deletion
+- **Orders**: Customer orders with status tracking
+- **OrderItems**: Order line items linking articles to orders
 
 ## Project Structure
 
@@ -287,6 +322,7 @@ WebShop/
 - Clear browser cookies/session storage
 - Check console for authentication errors
 - Verify default admin user exists in database
+- Ensure Vue.js loads properly (check browser console for Vue errors)
 
 ### Permission Denied
 - Check user role in navbar
@@ -298,6 +334,38 @@ WebShop/
 - User will be redirected to login page
 - No data loss - just need to re-authenticate
 
+### Vue.js Loading Issues
+- Application uses local Vue.js file (`/js/vue.global.prod.min.js`)
+- If Vue fails to load, check browser console for errors
+- Fallback mechanism will show error screen after 10 seconds
+- No external CDN dependencies - works offline
+
+### Smart Delete Confusion
+- Items marked "Inactive" are not deleted - they're preserved for data integrity
+- Inactive items can be reactivated by editing them
+- Only items without any orders can be permanently deleted
+- Check order history if wondering why an item can't be deleted
+
+## Recent Improvements (2025)
+
+### ✅ Smart Delete System
+- Implemented IsActive fields for Articles and SubscriptionPackages
+- Automatic deactivation instead of deletion for items with orders
+- Role-based filtering (Editors see all, Users see active only)
+- Visual indicators for inactive items with reactivation capability
+
+### ✅ Enhanced User Experience
+- Local Vue.js integration (no CDN dependencies)
+- Improved error handling and user feedback
+- Better visual distinction between active/inactive items
+- Comprehensive session management with proper cookie handling
+
+### ✅ Data Integrity Protection
+- Referential integrity preservation through soft deletion
+- Complete order history maintenance
+- Business rule enforcement at API level
+- Graceful handling of deletion attempts on referenced items
+
 ## Future Enhancements
 
 - JWT token-based authentication
@@ -307,6 +375,9 @@ WebShop/
 - Two-factor authentication
 - Audit logging for user actions
 - Password reset via email
+- Bulk operations for articles/subscriptions
+- Advanced filtering and search capabilities
+- Export functionality for orders and reports
 
 ## Contributing
 

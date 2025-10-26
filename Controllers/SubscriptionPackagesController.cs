@@ -22,7 +22,15 @@ public class SubscriptionPackagesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<SubscriptionPackage>>> GetAll()
     {
-        return await _context.SubscriptionPackages.OrderByDescending(p => p.DateCreated).ToListAsync();
+        // Editors and Admins see all packages, Regular users see only active ones
+        var query = _context.SubscriptionPackages.AsQueryable();
+        
+        if (!_sessionService.IsEditor())
+        {
+            query = query.Where(p => p.IsActive);
+        }
+        
+        return await query.OrderByDescending(p => p.DateCreated).ToListAsync();
     }
 
     [HttpGet("{id}")]
@@ -66,6 +74,7 @@ public class SubscriptionPackagesController : ControllerBase
         existing.Description = package.Description;
         existing.Price = package.Price;
         existing.IncludesPhysicalMagazine = package.IncludesPhysicalMagazine;
+        existing.IsActive = package.IsActive;
 
         await _context.SaveChangesAsync();
         return NoContent();
@@ -87,9 +96,18 @@ public class SubscriptionPackagesController : ControllerBase
 
         if (existing.Orders.Any())
         {
-            return BadRequest(new { error = "Cannot delete package that has orders" });
+            // Instead of deleting, deactivate the package
+            existing.IsActive = false;
+            await _context.SaveChangesAsync();
+            
+            return Ok(new 
+            { 
+                message = "Subscription package has been deactivated instead of deleted",
+                reason = $"This package appears in {existing.Orders.Count} order(s). It has been marked as inactive to preserve order history."
+            });
         }
 
+        // If no orders, we can safely delete
         _context.SubscriptionPackages.Remove(existing);
         await _context.SaveChangesAsync();
         return NoContent();
