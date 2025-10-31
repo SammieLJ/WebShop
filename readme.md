@@ -394,8 +394,8 @@ This project is created as a technical assessment demonstration.
 ## Author
 
 Created as part of a technical assignment - 2025
-##
- Database Migration System
+
+## Database Migration System
 
 The application now uses a production-ready database migration system that separates test data from source code.
 
