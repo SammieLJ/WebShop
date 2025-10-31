@@ -394,3 +394,99 @@ This project is created as a technical assessment demonstration.
 ## Author
 
 Created as part of a technical assignment - 2025
+##
+ Database Migration System
+
+The application now uses a production-ready database migration system that separates test data from source code.
+
+### Key Features
+
+- **Persistent SQLite Database**: Database files persist between server restarts
+- **Clean Migration**: Ability to flush and recreate database cleanly
+- **Separate Test Data**: Test data stored in SQL files, not hardcoded in source
+- **Production Ready**: Source code contains no test data, only essential admin user
+
+### Database Files
+
+- **Production**: `webshop.db` (configured in appsettings.json)
+- **Development**: `webshop-dev.db` (configured in appsettings.Development.json)
+- **Test Data**: `Data/seed-data.sql` (SQL statements for development/testing)
+
+### Migration Commands
+
+#### Using API Endpoints
+
+```bash
+# Recreate database (production mode - only admin user)
+curl -X POST "http://localhost:5000/api/migration/migrate"
+
+# Recreate database with test data
+curl -X POST "http://localhost:5000/api/migration/migrate?seedTestData=true"
+
+# Add test data to existing database
+curl -X POST "http://localhost:5000/api/migration/seed"
+```
+
+#### Using Batch Script (Windows)
+
+```bash
+# Show help
+migrate.bat help
+
+# Recreate database (production mode)
+migrate.bat migrate
+
+# Recreate database with test data
+migrate.bat migrate seed
+
+# Add test data to existing database
+migrate.bat seed
+```
+
+### Migration Behavior
+
+#### First Run
+- Database is created automatically
+- Only essential admin user is created
+- No test data unless explicitly requested
+
+#### Normal Startup
+- Database persists between restarts
+- No data loss on server shutdown
+- Existing data remains intact
+
+#### Migration Command
+- Completely deletes and recreates database
+- Always creates admin user for system access
+- Optionally seeds test data from SQL file
+
+### Test Data Management
+
+Test data is now stored in `Data/seed-data.sql` and includes:
+- Sample articles (cameras, phones, headphones, etc.)
+- Subscription packages (monthly, annual, digital, physical)
+- Sample orders with order items
+- Additional test users
+
+### Production Deployment
+
+For production deployment:
+1. Use `migrate.bat migrate` (without seed) to create clean database
+2. Only admin user will be created
+3. No test data will be present
+4. Database will persist between deployments
+
+### Development Workflow
+
+For development:
+1. Use `migrate.bat migrate seed` to get fresh database with test data
+2. Test data is loaded from SQL file
+3. Easy to modify test data by editing `Data/seed-data.sql`
+4. Clean separation between code and data
+
+### Security Benefits
+
+- No sensitive test data in source code
+- Production deployments are clean by default
+- Test data is optional and controlled
+- Database credentials in configuration files only

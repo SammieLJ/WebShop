@@ -5,19 +5,16 @@ using WebShop.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
-var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrEmpty(defaultConn))
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString))
 {
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite(defaultConn));
-}
-else
-{
-    // Fallback to EF InMemory to avoid SQLite transient in-memory connection issues
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseInMemoryDatabase("WebShopDb"));
+    throw new InvalidOperationException("DefaultConnection string is required");
 }
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(connectionString));
+
+builder.Services.AddScoped<DatabaseMigrator>();
 builder.Services.AddSingleton<ISmsServiceManager, SmsServiceManager>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
@@ -41,8 +38,8 @@ var app = builder.Build();
 // Initialize database
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    DatabaseInitializer.Initialize(db);
+    var migrator = scope.ServiceProvider.GetRequiredService<DatabaseMigrator>();
+    await migrator.EnsureDatabaseAsync();
 }
 
 // Configure default files to serve default.html for root requests
